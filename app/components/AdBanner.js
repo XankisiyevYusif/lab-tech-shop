@@ -1,14 +1,11 @@
-// The ads. On purpose, this is a plain Server Component with NO interactivity
-// and NO knowledge of whether the user has paid. It always renders.
-//
-// Making these obey a "the user went premium" flag is YOUR job (see README.md).
-// You'll need the browser's localStorage to remember the purchase, and
-// localStorage only exists in the browser... so think about where this code
-// is allowed to run.
-//
-// It renders TWO banners so the page feels genuinely cluttered:
-//   1. a scrolling marquee strip across the top of the content
-//   2. a floating, blinking ad card pinned to the bottom-right corner
+"use client";
+
+import { usePremium } from "../context/PremiumContext";
+
+// The ads. Now it is a Client Component that consumes the PremiumContext
+// to determine whether to hide the ads. To prevent hydration mismatches,
+// it renders the ads by default on the server/initial render, and then hides
+// them if the premium flag is set once mounted on the client.
 
 const MARQUEE_ADS = [
   "🔥 MEGA DEAL: buy 1 cable, get 0 free!",
@@ -19,6 +16,14 @@ const MARQUEE_ADS = [
 ];
 
 export default function AdBanner() {
+  const { isPremium, hasMounted } = usePremium();
+
+  // If the user has paid and the component has mounted on the client, hide the ads.
+  // Before mounting, we must render the ads to match the server-rendered HTML and avoid hydration mismatch.
+  if (hasMounted && isPremium) {
+    return null;
+  }
+
   return (
     <>
       {/* 1) Top marquee strip */}
